@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <title>Fichero | Registro de ingreso</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --accent: #00ffcc;
+            --bg: #000;
+            --card: rgba(20,20,20,0.92);
+            --line: #2a2a2a;
+            --muted: #9a9a9a;
+            --ok: #00ffcc;
+            --warn: #ffcc00;
+            --err: #ff4d6d;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            color: white;
+            background-color: var(--bg);
+            background-image: url("https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=1170&auto=format&fit=crop");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .overlay {
+            background: rgba(0,0,0,0.8);
+            min-height: 100vh;
+            padding: 24px 16px 40px;
+        }
+
+        h1, h2, h3, .clock, .brand {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 900px;
+            margin: 0 auto 16px;
+        }
+
+        .brand {
+            font-weight: 900;
+            letter-spacing: 2px;
+            font-size: 18px;
+        }
+
+        .link-btn {
+            background: none;
+            border: 1px solid var(--line);
+            color: var(--muted);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 24px;
+            margin: 0 auto 20px;
+            max-width: 900px;
+            border-radius: 16px;
+            backdrop-filter: blur(6px);
+        }
+
+        .hidden { display: none !important; }
+
+        /* ---------- Pantalla de fichaje ---------- */
+        .kiosk { max-width: 460px; text-align: center; }
+
+        .clock {
+            font-size: clamp(44px, 14vw, 72px);
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .date {
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+
+        .dni-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            letter-spacing: 3px;
+            min-height: 60px;
+            padding: 12px;
+            border: 2px solid var(--line);
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .dni-display.placeholder { color: #555; font-size: 20px; line-height: 36px; }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .key {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 26px;
+            padding: 18px 0;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: #151515;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .key:active { background: #262626; }
+        .key.action { font-size: 16px; color: var(--muted); }
+
+        .btn {
+            display: inline-block;
+            background: var(--accent);
+            color: black;
+            border: none;
+            padding: 14px 26px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .btn:disabled { opacity: 0.35; cursor: default; }
+        .btn.full { width: 100%; margin-top: 14px; font-size: 20px; padding: 18px; }
+        .btn.secondary { background: #2a2a2a; color: white; }
+        .btn.danger { background: var(--err); color: white; }
+        .btn.small { padding: 8px 14px; font-size: 13px; }
+
+        .msg {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 18px;
+            min-height: 24px;
+        }
+
+        .msg.ok { background: rgba(0,255,204,0.12); border: 1px solid var(--ok); }
+        .msg.warn { background: rgba(255,204,0,0.12); border: 1px solid var(--warn); }
+        .msg.err { background: rgba(255,77,109,0.12); border: 1px solid var(--err); }
+        .msg strong { font-family: 'Orbitron', sans-serif; }
+
+        /* ---------- Panel encargado ---------- */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            background: #1a1a1a;
+            color: var(--muted);
+            border: 1px solid var(--line);
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .tab.active { background: var(--accent); color: black; border-color: var(--accent); }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        input {
+            background: #111;
+            color: white;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 16px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        input:focus { outline: 2px solid var(--accent); }
+
+        .table-wrap { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 15px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap;
+        }
+
+        th { color: var(--muted); font-weight: 600; font-size: 13px; }
+
+        .pill {
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: #2a2a2a;
+        }
+
+        .pill.on { background: rgba(0,255,204,0.18); color: var(--accent); }
+
+        .note { color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+        .stat {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            color: var(--accent);
+        }
+
+        /* ---------- Modal PIN ---------- */
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 10;
+        }
+
+        .modal {
+            background: #111;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+        }
+
+        .modal input { width: 100%; text-align: center; font-size: 24px; letter-spacing: 6px; margin: 12px 0; }
+    </style>
+</head>
+
+<body>
+<div class="overlay">
+
+    <div class="topbar">
+        <div class="brand">FICHERO</div>
+        <button class="link-btn" id="btnToggleView">Encargado</button>
+    </div>
+
+    <!-- ================= PANTALLA DE FICHAJE ================= -->
+    <section id="viewKiosk">
+        <div class="card kiosk">
+            <div class="clock" id="clock">--:--</div>
+            <div class="date" id="date"></div>
+
+            <div class="dni-display placeholder" id="dniDisplay">Ingresá tu DNI</div>
+
+            <div class="keypad" id="keypad">
+                <button class="key" data-k="1">1</button>
+                <button class="key" data-k="2">2</button>
+                <button class="key" data-k="3">3</button>
+                <button class="key" data-k="4">4</button>
+                <button class="key" data-k="5">5</button>
+                <button class="key" data-k="6">6</button>
+                <button class="key" data-k="7">7</button>
+                <button class="key" data-k="8">8</button>
+                <button class="key" data-k="9">9</button>
+                <button class="key action" data-k="clear">Borrar</button>
+                <button class="key" data-k="0">0</button>
+                <button class="key action" data-k="back">&#9003;</button>
+            </div>
+
+            <button class="btn full" id="btnFichar" disabled>Registrar ingreso</button>
+
+            <div class="msg hidden" id="kioskMsg"></div>
+        </div>
+    </section>
+
+    <!-- ================= PANEL ENCARGADO ================= -->
+    <section id="viewAdmin" class="hidden">
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" data-tab="registros">Registros</button>
+                <button class="tab" data-tab="personal">Personal</button>
+                <button class="tab" data-tab="ajustes">Ajustes</button>
+            </div>
+
+            <!-- Registros -->
+            <div id="tabRegistros">
+                <div class="row">
+                    <label>Desde <input type="date" id="fDesde"></label>
+                    <label>Hasta <input type="date" id="fHasta"></label>
+                    <button class="btn small secondary" id="btnHoy">Hoy</button>
+                    <button class="btn small" id="btnExportCsv">Exportar CSV</button>
+                </div>
+                <div class="row">
+                    <div><div class="stat" id="statTotal">0</div><div class="note">ingresos en el período</div></div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Fecha</th><th>Hora</th><th>DNI</th><th>Nombre</th></tr></thead>
+                        <tbody id="tblRegistros"></tbody>
+                    </table>
+                </div>
+                <p class="note" id="emptyRegistros">No hay ingresos en el período seleccionado.</p>
+            </div>
+
+            <!-- Personal -->
+            <div id="tabPersonal" class="hidden">
+                <form class="row" id="formEmpleado" autocomplete="off">
+                    <label>Nombre y apellido <input id="empNombre" required maxlength="60"></label>
+                    <label>DNI <input id="empDni" required inputmode="numeric" pattern="[0-9]{6,9}" maxlength="9" title="Solo números, entre 6 y 9 dígitos"></label>
+                    <button class="btn small" type="submit">Agregar</button>
+                </form>
+                <div class="msg hidden" id="personalMsg"></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Nombre</th><th>DNI</th><th>Estado</th><th></th></tr></thead>
+                        <tbody id="tblPersonal"></tbody>
+                    </table>
+                </div>
+                <p class="note">Dar de baja a alguien le impide fichar, pero conserva su historial de ingresos.</p>
+            </div>
+
+            <!-- Ajustes -->
+            <div id="tabAjustes" class="hidden">
+                <h3>PIN del encargado</h3>
+                <form class="row" id="formPin" autocomplete="off">
+                    <label>Nuevo PIN (4 a 8 dígitos) <input id="newPin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" required></label>
+                    <button class="btn small" type="submit">Cambiar PIN</button>
+                </form>
+
+                <h3>Copia de seguridad</h3>
+                <p class="note">
+                    Los datos se guardan <strong>solo en este dispositivo</strong>. Si se borran los datos del navegador
+                    o se pierde el equipo, se pierden los registros. Descargá una copia de seguridad con frecuencia
+                    (ej. una vez por semana) y guardala en tu Drive o mail.
+                </p>
+                <div class="row">
+                    <button class="btn small" id="btnBackup">Descargar copia (.json)</button>
+                    <label class="btn small secondary" style="flex-direction:row; color:white;">
+                        Restaurar copia
+                        <input type="file" id="fileRestore" accept="application/json" class="hidden">
+                    </label>
+                </div>
+                <div class="msg hidden" id="ajustesMsg"></div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Modal de PIN -->
+<div class="modal-bg hidden" id="pinModal">
+    <form class="modal" id="pinForm" autocomplete="off">
+        <h3 id="pinTitle">PIN del encargado</h3>
+        <p class="note" id="pinHint"></p>
+        <input type="password" id="pinInput" inputmode="numeric" pattern="[0-9]{4,8}" maxlength="8" required>
+        <div class="msg err hidden" id="pinErr"></div>
+        <div class="row" style="justify-content:center; margin-top:12px;">
+            <button type="button" class="btn secondary small" id="pinCancel">Cancelar</button>
+            <button type="submit" class="btn small">Entrar</button>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    // ---------- Almacenamiento ----------
+    const KEY = 'fichero_v1';
+    // Evita doble registro si alguien toca el botón dos veces seguidas.
+    const VENTANA_DUPLICADO_MIN = 10;
+
+    function load() {
+        try {
+            const d = JSON.parse(localStorage.getItem(KEY));
+            if (d && Array.isArray(d.empleados) && Array.isArray(d.registros)) return d;
+        } catch (e) { /* datos corruptos o vacíos */ }
+        return { pin: null, empleados: [], registros: [] };
+    }
+
+    function save() {
+        localStorage.setItem(KEY, JSON.stringify(db));
+    }
+
+    let db = load();
+
+    // ---------- Utilidades ----------
+    const $ = (id) => document.getElementById(id);
+    const pad = (n) => String(n).padStart(2, '0');
+    const fechaISO = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const horaHM = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const horaHMS = (d) => `${horaHM(d)}:${pad(d.getSeconds())}`;
+    const fechaAR = (iso) => iso.split('-').reverse().join('/');
+    const fmtDni = (dni) => dni.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function showMsg(el, type, html, ms) {
+        el.className = 'msg ' + type;
+        el.innerHTML = html;
+        clearTimeout(el._t);
+        if (ms) el._t = setTimeout(() => el.classList.add('hidden'), ms);
+    }
+
+    // ---------- Reloj ----------
+    function tick() {
+        const now = new Date();
+        $('clock').textContent = horaHMS(now);
+        const f = now.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        $('date').textContent = f.charAt(0).toUpperCase() + f.slice(1);
+    }
+    tick();
+    setInterval(tick, 1000);
+
+    // ---------- Fichaje ----------
+    let dni = '';
+
+    function renderDni() {
+        const d = $('dniDisplay');
+        if (dni) {
+            d.textContent = fmtDni(dni);
+            d.classList.remove('placeholder');
+        } else {
+            d.textContent = 'Ingresá tu DNI';
+            d.classList.add('placeholder');
+        }
+        $('btnFichar').disabled = dni.length < 6;
+    }
+
+    $('keypad').addEventListener('click', (e) => {
+        const k = e.target.closest('.key');
+        if (!k) return;
+        const v = k.dataset.k;
+        if (v === 'clear') dni = '';
+        else if (v === 'back') dni = dni.slice(0, -1);
+        else if (dni.length < 9) dni += v;
+        renderDni();
+    });
+
+    // Teclado físico (si la tablet tiene uno o se usa en PC)
+    document.addEventListener('keydown', (e) => {
+        if ($('viewKiosk').classList.contains('hidden') || !$('pinModal').classList.contains('hidden')) return;
+        if (/^[0-9]$/.test(e.key) && dni.length < 9) dni += e.key;
+        else if (e.key === 'Backspace') dni = dni.slice(0, -1);
+        else if (e.key === 'Escape') dni = '';
+        else if (e.key === 'Enter') { if (!$('btnFichar').disabled) fichar(); return; }
+        else return;
+        renderDni();
+    });
+
+    function fichar() {
+        const msg = $('kioskMsg');
+        const emp = db.empleados.find((x) => x.dni === dni);
+
+        if (!emp) {
+            showMsg(msg, 'err', 'DNI no registrado.<br>Avisale al encargado.', 5000);
+        } else if (!emp.activo) {
+            showMsg(msg, 'err', `${escapeHtml(emp.nombre)}: estás dado de baja.<br>Avisale al encargado.`, 5000);
+        } else {
+            const now = new Date();
+            const ultimo = [...db.registros].reverse().find((r) => r.dni === emp.dni);
+            if (ultimo && now - new Date(ultimo.ts) < VENTANA_DUPLICADO_MIN * 60000) {
+                showMsg(msg, 'warn', `${escapeHtml(emp.nombre)}, ya registraste tu ingreso a las <strong>${horaHM(new Date(ultimo.ts))}</strong>.`, 5000);
+            } else {
+                db.registros.push({ id: now.getTime() + '-' + emp.dni, dni: emp.dni, nombre: emp.nombre, ts: now.toISOString() });
+                save();
+                showMsg(msg, 'ok', `¡Hola ${escapeHtml(emp.nombre.split(' ')[0])}!<br>Ingreso registrado a las <strong>${horaHM(now)}</strong>`, 5000);
+            }
+        }
+        dni = '';
+        renderDni();
+    }
+
+    $('btnFichar').addEventListener('click', fichar);
+
+    // ---------- PIN / acceso encargado ----------
+    let pinCallback = null;
+
+    function askPin(title, hint, cb) {
+        $('pinTitle').textContent = title;
+        $('pinHint').textContent = hint || '';
+        $('pinInput').value = '';
+        $('pinErr').classList.add('hidden');
+        $('pinModal').classList.remove('hidden');
+        $('pinInput').focus();
+        pinCallback = cb;
+    }
+
+    function closePin() {
+        $('pinModal').classList.add('hidden');
+        pinCallback = null;
+    }
+
+    $('pinCancel').addEventListener('click', closePin);
+
+    $('pinForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const ok = pinCallback && pinCallback($('pinInput').value);
+        if (ok) closePin();
+        else {
+            $('pinInput').value = '';
+            showMsg($('pinErr'), 'err', 'PIN incorrecto');
+        }
+    });
+
+    function setView(admin) {
+        $('viewKiosk').classList.toggle('hidden', admin);
+        $('viewAdmin').classList.toggle('hidden', !admin);
+        $('btnToggleView').textContent = admin ? 'Volver al fichero' : 'Encargado';
+        if (admin) {
+            document.querySelector('.tab[data-tab="registros"]').click();
+            renderAdmin();
+        }
+    }
+
+    $('btnToggleView').addEventListener('click', () => {
+        if (!$('viewAdmin').classList.contains('hidden')) return setView(false);
+
+        if (!db.pin) {
+            askPin('Crear PIN del encargado', 'Primera vez: elegí un PIN de 4 a 8 dígitos. No lo compartas con el personal.', (p) => {
+                if (!/^[0-9]{4,8}$/.test(p)) return false;
+                db.pin = p;
+                save();
+                setView(true);
+                return true;
+            });
+        } else {
+            askPin('PIN del encargado', '', (p) => {
+                if (p !== db.pin) return false;
+                setView(true);
+                return true;
+            });
+        }
+    });
+
+    // Vuelve solo al fichero tras 5 minutos sin actividad en el panel.
+    let idleTimer;
+    function resetIdle() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => { if (!$('viewAdmin').classList.contains('hidden')) setView(false); }, 5 * 60000);
+    }
+    ['click', 'keydown', 'touchstart'].forEach((ev) => document.addEventListener(ev, resetIdle));
+
+    // ---------- Panel: pestañas ----------
+    document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('active', x === t));
+        $('tabRegistros').classList.toggle('hidden', t.dataset.tab !== 'registros');
+        $('tabPersonal').classList.toggle('hidden', t.dataset.tab !== 'personal');
+        $('tabAjustes').classList.toggle('hidden', t.dataset.tab !== 'ajustes');
+    }));
+
+    function renderAdmin() {
+        if (!$('fDesde').value) setHoy();
+        renderRegistros();
+        renderPersonal();
+    }
+
+    // ---------- Panel: registros ----------
+    function setHoy() {
+        const hoy = fechaISO(new Date());
+        $('fDesde').value = hoy;
+        $('fHasta').value = hoy;
+    }
+
+    function registrosFiltrados() {
+        const desde = $('fDesde').value || '0000-00-00';
+        const hasta = $('fHasta').value || '9999-99-99';
+        return db.registros
+            .map((r) => ({ ...r, d: new Date(r.ts) }))
+            .filter((r) => { const f = fechaISO(r.d); return f >= desde && f <= hasta; })
+            .sort((a, b) => b.d - a.d);
+    }
+
+    function renderRegistros() {
+        const rows = registrosFiltrados();
+        $('statTotal').textContent = rows.length;
+        $('emptyRegistros').classList.toggle('hidden', rows.length > 0);
+        $('tblRegistros').innerHTML = rows.map((r) =>
+            `<tr><td>${fechaAR(fechaISO(r.d))}</td><td>${horaHMS(r.d)}</td><td>${fmtDni(r.dni)}</td><td>${escapeHtml(r.nombre)}</td></tr>`
+        ).join('');
+    }
+
+    $('fDesde').addEventListener('change', renderRegistros);
+    $('fHasta').addEventListener('change', renderRegistros);
+    $('btnHoy').addEventListener('click', () => { setHoy(); renderRegistros(); });
+
+    function download(filename, content, type) {
+        const blob = new Blob([content], { type });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+
+    $('btnExportCsv').addEventListener('click', () => {
+        const rows = registrosFiltrados().reverse();
+        const csvCell = (v) => '"' + String(v).replace(/"/g, '""') + '"';
+        // Separador ";" y BOM para que Excel en español lo abra bien.
+        const lines = [['Fecha', 'Hora', 'DNI', 'Nombre'].map(csvCell).join(';')]
+            .concat(rows.map((r) => [fechaAR(fechaISO(r.d)), horaHMS(r.d), r.dni, r.nombre].map(csvCell).join(';')));
+        download(`ingresos_${$('fDesde').value}_a_${$('fHasta').value}.csv`, '﻿' + lines.join('\r\n'), 'text/csv;charset=utf-8');
+    });
+
+    // ---------- Panel: personal ----------
+    function renderPersonal() {
+        const emps = [...db.empleados].sort((a, b) => (b.activo - a.activo) || a.nombre.localeCompare(b.nombre));
+        $('tblPersonal').innerHTML = emps.length ? emps.map((e) =>
+            `<tr>
+                <td>${escapeHtml(e.nombre)}</td>
+                <td>${fmtDni(e.dni)}</td>
+                <td><span class="pill ${e.activo ? 'on' : ''}">${e.activo ? 'Activo' : 'Baja'}</span></td>
+                <td><button class="btn small ${e.activo ? 'secondary' : ''}" data-dni="${e.dni}">${e.activo ? 'Dar de baja' : 'Reactivar'}</button></td>
+            </tr>`
+        ).join('') : '<tr><td colspan="4" class="note">Todavía no cargaste personal.</td></tr>';
+    }
+
+    $('tblPersonal').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-dni]');
+        if (!b) return;
+        const emp = db.empleados.find((x) => x.dni === b.dataset.dni);
+        if (emp.activo && !confirm(`¿Dar de baja a ${emp.nombre}? No podrá fichar hasta que lo reactives.`)) return;
+        emp.activo = !emp.activo;
+        save();
+        renderPersonal();
+    });
+
+    $('formEmpleado').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nombre = $('empNombre').value.trim().replace(/\s+/g, ' ');
+        const nuevoDni = $('empDni').value.replace(/\D/g, '');
+        const msg = $('personalMsg');
+
+        if (!nombre || !/^[0-9]{6,9}$/.test(nuevoDni)) {
+            return showMsg(msg, 'err', 'Completá nombre y un DNI válido (solo números).', 4000);
+        }
+        const existente = db.empleados.find((x) => x.dni === nuevoDni);
+        if (existente) {
+            return showMsg(msg, 'err', `Ese DNI ya está cargado a nombre de ${escapeHtml(existente.nombre)}.`, 4000);
+        }
+        db.empleados.push({ dni: nuevoDni, nombre, activo: true, alta: new Date().toISOString() });
+        save();
+        $('formEmpleado').reset();
+        showMsg(msg, 'ok', `${escapeHtml(nombre)} agregado.`, 3000);
+        renderPersonal();
+    });
+
+    // ---------- Panel: ajustes ----------
+    $('formPin').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const p = $('newPin').value;
+        if (!/^[0-9]{4,8}$/.test(p)) return showMsg($('ajustesMsg'), 'err', 'El PIN debe tener entre 4 y 8 dígitos.', 4000);
+        db.pin = p;
+        save();
+        $('formPin').reset();
+        showMsg($('ajustesMsg'), 'ok', 'PIN actualizado.', 3000);
+    });
+
+    $('btnBackup').addEventListener('click', () => {
+        download(`fichero_backup_${fechaISO(new Date())}.json`, JSON.stringify(db, null, 2), 'application/json');
+    });
+
+    $('fileRestore').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        e.target.value = '';
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const d = JSON.parse(reader.result);
+                if (!Array.isArray(d.empleados) || !Array.isArray(d.registros)) throw new Error();
+                if (!confirm(`La copia tiene ${d.empleados.length} empleados y ${d.registros.length} registros. Esto REEMPLAZA los datos actuales. ¿Continuar?`)) return;
+                db = { pin: d.pin || db.pin, empleados: d.empleados, registros: d.registros };
+                save();
+                renderAdmin();
+                showMsg($('ajustesMsg'), 'ok', 'Copia restaurada.', 4000);
+            } catch (err) {
+                showMsg($('ajustesMsg'), 'err', 'El archivo no es una copia válida del fichero.', 4000);
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    renderDni();
+})();
+</script>
+</body>
+</html>
